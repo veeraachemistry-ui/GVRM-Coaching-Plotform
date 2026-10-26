@@ -25,3 +25,17 @@ jobs:
           test -f main.js
           test -f manifest.webmanifest
           echo "GVRM Coaching Platform files verified successfully."
+      - name: Upload Website Files
+        uses: actions/upload-artifact@v4
+        with:
+          name: GVRM-Coaching-Platform
+          path: |
+            index.html
+            main.js
+            shim.js
+            sw.js
+            manifest.webmanifest
+            icon-192.png
+            icon-512.png
+            build/
+          if-no-files-found: warn
