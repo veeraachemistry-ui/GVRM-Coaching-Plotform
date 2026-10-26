@@ -1,9 +1,14 @@
-GVRM Coaching - thani website (separate repo) steps
-====================================================
-1. https://github.com/new -> Repository name: gvrm-coaching -> Public -> Create repository
-2. "uploading an existing file" click pannunga -> intha folder-kulla irukkura ELLA files-ayum (folder illa, files) drag & drop -> Commit changes
-3. Settings -> Pages -> Source: "Deploy from a branch" -> Branch: main, Folder: /(root) -> Save
-4. 1-2 nimidam kalichu: https://veeraachemistry-ui.github.io/gvrm-coaching/   (Ctrl+F5)
-5. Phone-la open panni "Add to Home screen".
+GVRM Coaching - Windows .exe build panna steps
+================================================
+1. https://nodejs.org-la irundhu Node.js (LTS) install pannunga.
+2. Intha folder-ah unzip pannunga (Desktop-la vechchaa nalladhu).
+3. build.bat-ah double-click pannunga. (Internet venum, 5-10 min aagum.)
+4. "dist" folder-kulla "GVRM Coaching Setup 1.0.0.exe" varum. Adha install pannunga.
 
-Vera vazhi (GitHub vendaam): https://app.netlify.com/drop -> intha folder-ah drag & drop -> udane URL kidaikkum.
+Muthalla test panna mattum: command prompt-la  npm install  then  npm start
+
+Therinjukka vendiyadhu:
+- Data antha PC-laye save aagum (offline). Settings > Backup button-la regular-ah backup edunga.
+- Teacher mode automatic. Students/parents login antha PC-la mattum work aagum.
+- 7 naal free trial. Apram activation key venum.
+- Windows "Unknown publisher" warning varum (code-signing certificate illa).

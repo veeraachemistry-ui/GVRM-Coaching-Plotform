@@ -1,0 +1,16 @@
+{
+  "name": "gvrm-coaching",
+  "version": "1.0.0",
+  "description": "G.V.R.M.Solutions Online Coaching Platform",
+  "main": "main.js",
+  "author": "G.V.R.M.Solutions",
+  "scripts": { "start": "electron .", "build": "electron-builder --win" },
+  "devDependencies": { "electron": "^31.0.0", "electron-builder": "^24.13.3" },
+  "build": {
+    "appId": "com.gvrm.coaching",
+    "productName": "GVRM Coaching",
+    "files": ["main.js", "index.html", "shim.js", "build/**"],
+    "win": { "target": "nsis", "icon": "build/icon.png" },
+    "nsis": { "oneClick": false, "allowToChangeInstallationDirectory": true }
+  }
+}
