@@ -1,5 +1,5 @@
 
-name: GVRM Coaching Platform Refresh
+name: GVRM Coaching Platform - Windows Installer
 
 on:
   push:
@@ -10,32 +10,133 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: gvrm-windows-build
+  cancel-in-progress: true
+
 jobs:
-  validate:
-    name: Validate Coaching Platform
-    runs-on: ubuntu-latest
+  build-windows:
+    name: Build Windows Setup.exe
+    runs-on: windows-latest
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v5
 
-      - name: Check Website Files
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+
+      - name: Verify Website Files
+        shell: pwsh
         run: |
-          test -f index.html
-          test -f main.js
-          test -f manifest.webmanifest
-          echo "GVRM Coaching Platform files verified successfully."
-      - name: Upload Website Files
+          $required = @(
+            "index.html",
+            "main.js",
+            "package.json"
+          )
+
+          foreach ($file in $required) {
+            if (!(Test-Path $file)) {
+              throw "Required file missing: $file"
+            }
+          }
+
+          node -e "JSON.parse(require('fs').readFileSync('package.json','utf8'))"
+
+      - name: Prepare Electron App
+        shell: pwsh
+        run: |
+          node -e "const fs=require('fs'); const p=require('./package.json'); p.name='gvrm-coaching-platform'; p.version=p.version || '1.0.0'; p.main='electron-main.cjs'; fs.writeFileSync('package.json', JSON.stringify(p,null,2))"
+
+          @'
+          const { app, BrowserWindow } = require("electron");
+          const path = require("path");
+
+          function createWindow() {
+            const win = new BrowserWindow({
+              width: 1280,
+              height: 800,
+              autoHideMenuBar: true,
+              webPreferences: {
+                contextIsolation: true,
+                nodeIntegration: false
+              }
+            });
+
+            win.loadFile(path.join(__dirname, "index.html"));
+          }
+
+          app.whenReady().then(() => {
+            createWindow();
+
+            app.on("activate", () => {
+              if (BrowserWindow.getAllWindows().length === 0) {
+                createWindow();
+              }
+            });
+          });
+
+          app.on("window-all-closed", () => {
+            if (process.platform !== "darwin") app.quit();
+          });
+          '@ | Set-Content electron-main.cjs
+
+          @'
+          module.exports = {
+            appId: "in.gvrm.coachingplatform",
+            productName: "GVRM Coaching Platform",
+            directories: {
+              output: "dist"
+            },
+            files: [
+              "electron-main.cjs",
+              "index.html",
+              "main.js",
+              "shim.js",
+              "sw.js",
+              "manifest.webmanifest",
+              "icon-192.png",
+              "icon-512.png",
+              "build/**/*",
+              "package.json"
+            ],
+            extraMetadata: {
+              main: "electron-main.cjs"
+            },
+            win: {
+              target: ["nsis"]
+            },
+            nsis: {
+              oneClick: false,
+              allowToChangeInstallationDirectory: true,
+              artifactName: "GVRM-Coaching-Platform-Setup.${ext}"
+            }
+          };
+          '@ | Set-Content electron-builder.config.cjs
+
+      - name: Install Electron and Builder
+        run: npm install --no-save --package-lock=false electron electron-builder
+
+      - name: Build Windows Installer
+        run: npx electron-builder --config electron-builder.config.cjs --win nsis --publish never
+
+      - name: Verify Installer
+        shell: pwsh
+        run: |
+          $installer = Get-ChildItem dist -Filter *.exe -ErrorAction SilentlyContinue
+
+          if (!$installer) {
+            throw "No Windows installer was generated in dist/"
+          }
+
+          Get-ChildItem dist -Filter *.exe
+
+      - name: Upload Setup.exe Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: GVRM-Coaching-Platform
-          path: |
-            index.html
-            main.js
-            shim.js
-            sw.js
-            manifest.webmanifest
-            icon-192.png
-            icon-512.png
-            build/
-          if-no-files-found: warn
+          name: GVRM-Coaching-Platform-Windows-Installer
+          path: dist/*.exe
+          if-no-files-found: error
+          retention-days: 14
